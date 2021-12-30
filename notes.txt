@@ -1,0 +1,107 @@
+# JPxG, 2021 December 29
+# I'm going to try various things from the Internet that claim to accept input.
+
+#import keyboard
+#while True:
+#	dog = keyboard.read_event(suppress=False)
+#	print(dog)
+
+# Notes on "keyboard": It seems very cool: reads keyboard events even if focused elsewhere.
+# Also, it can also emit them. However, I need to run it as root (wtf) and the documentation is abysmally shit.
+# Anyway, it doesn't do anything for my mouse or joystick, so I am relegating it to idle curiosity.
+
+
+import hid
+
+for device in hid.enumerate():
+	print(device)
+	print(f"0x{device['vendor_id']:04x}:0x{device['product_id']:04x}")
+
+j = hid.device()
+j.open(0x046D, 0x215)
+j.set_nonblocking(True)
+
+
+
+
+# Here is some thing that Johnny found. Does not work if sudoed.
+
+"""
+
+from pynput import mouse, keyboard
+from pynput.keyboard import Key, Listener
+from pynput.mouse import Listener, Button, Controller
+
+
+
+
+
+def on_prass(key):
+    print(f"{key} pressed")
+
+
+def on_release(key):
+    print(f"{key} release")
+    if key == Key.esc:
+        # Stop listener
+        return False
+
+##### Mouse stuff. 
+
+def on_click(x, y, button, pressed):
+    print(f"{button}")
+
+
+def on_unclick(button):
+	print(f"{button} release")
+
+def on_mouve(x, y):
+	print(f"Moved to {x}, {y}")
+
+# Collect events until released
+#with keyboard.Listener(on_press=on_prass, on_release=on_release) as listener:
+#    listener.join()
+
+#with mouse.Listener(on_press=on_click, on_move=on_mouve) as mauslistener:
+#	mauslistener.join()
+
+keyListen = keyboard.Listener(on_press=on_prass, on_release=on_release)
+keyListen.start()
+
+mouseListen = mouse.Listener(on_click=on_click, on_move=on_mouve)
+mouseListen.start()
+
+while True:
+	pass
+
+	"""
+
+# The joystick is 046d:c215 Logitech, Inc. Extreme 3D Pro
+# {'path': b'5-4:1.0', 'vendor_id': 1133, 'product_id': 49685, 'serial_number': '', 'release_number': 22289, 'manufacturer_string': '', 'product_string': '', 'usage_page': 0, 'usage': 0, 'interface_number': 0}
+
+
+
+# sudo cat /dev/hidraw2 = my mouse
+# sudo cat /dev/hidraw4 = my kezboard
+
+
+#[x@localhost joystuck]$ sudo ls /sys/kernel/debug/usb/devices -al *
+#-rw-rw-r--. 1 x    x    2032 Dec 29 21:09 joystuck.py
+#-r--r--r--. 1 root root    0 Nov  3 18:04 /sys/kernel/debug/usb/devices
+
+#Why the FUCK is this file in there. This makes no sense. This is the most insane thing I have ever seen.
+
+# sudo cat /sys/kernel/debug/usb/devices
+
+# returns this:
+# T:  Bus=05 Lev=01 Prnt=01 Port=03 Cnt=02 Dev#= 16 Spd=12   MxCh= 0
+# D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+# P:  Vendor=046d ProdID=c215 Rev=57.11
+# S:  Manufacturer=Logitech
+# S:  Product=Extreme 3D pro
+# S:  SerialNumber=00000000002A
+# C:* #Ifs= 1 Cfg#= 1 Atr=80 MxPwr=100mA
+# I:* If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=00 Driver=(none)
+# E:  Ad=81(I) Atr=03(Int.) MxPS=   7 Ivl=1ms
+
+# There needs to be a 
