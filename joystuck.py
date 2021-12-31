@@ -108,6 +108,9 @@ j.set_nonblocking(True)
 
 # The following thing sets up an infinite loop to read input from the stick. Not ideal.
 
+zcooldown = 0
+zcooldownMax = 64
+
 while True:
 	#report = j.read(64)
 	# Works with 64
@@ -115,6 +118,8 @@ while True:
 	if report:
 		stick = parseReport(report)
 		print(makeDebugString(stick))
+
+		# Extremely baroque way to parse x/y joystick input for scrolling.
 		midpoint = 512
 		intervals = 16
 		goby = midpoint / intervals
@@ -128,7 +133,6 @@ while True:
 				directions[2] += 1
 			if stick['y'] > (midpoint + (goby * amount)):
 				directions[3] += 1
-
 		damping = 4
 		for a, b in enumerate(["left", "right", "up", "down"]):
 			print(a, b)
@@ -136,14 +140,29 @@ while True:
 			for c in range(directions[a]):
 				keyboard.send(b)
 
+		# Slightly less baroque way to parse z input for ctrl+pageup.
+		zcooldown -= 1
+		if stick['z'] < 64:
+			if zcooldown < 0:
+				zcooldown = zcooldownMax
+				keyboard.send("ctrl+page up")
+		if stick['z'] > 192:
+			if zcooldown < 0:
+				zcooldown = zcooldownMax
+				keyboard.send("ctrl+page down")
+
 		if stick['hx'] == -1:
-			keyboard.send('ctrl+')
+			pass
+			#keyboard.send("cmd+left")
+		if stick['hx'] == 1:
+			pass
+			#keyboard.send("cmd+right")
 
 
 		if stick['b'][0]:
-			pass
+			keyboard.send("ctrl+a")
 		if stick['b'][1]:
-			pass
+			keyboard.send("ctrl+w")
 		if stick['b'][2]:
 			pass
 		if stick['b'][3]:
