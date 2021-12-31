@@ -136,21 +136,42 @@ while True:
 				directions[3] += 1
 		damping = 4
 		for a, b in enumerate(["left", "right", "up", "down"]):
-			print(a, b)
+			#print(a, b)
 			directions[a] = directions[a] // damping
 			for c in range(directions[a]):
 				keyboard.send(b)
 
 		# Slightly less baroque way to parse z input for ctrl+pageup.
+		"""
 		zcooldown -= 1
 		if stick['z'] < 64:
 			if zcooldown < 0:
 				zcooldown = zcooldownMax
-				keyboard.send("ctrl+page up")
+				keyboard.send("shift+tab")
 		if stick['z'] > 192:
 			if zcooldown < 0:
 				zcooldown = zcooldownMax
-				keyboard.send("ctrl+page down")
+				keyboard.send("shift+tab")
+		"""
+
+		# Try the baroque way.
+		midpoint = 127
+		intervals = 16
+		goby = midpoint / intervals
+		directions = [0, 0]
+		for amount in range(1, intervals):
+			if stick['z'] < (midpoint - (goby * amount)):
+				directions[0] += 1
+			if stick['z'] > (midpoint + (goby * amount)):
+				directions[1] += 1
+		damping = 8
+		for a, b in enumerate(["shift+tab", "tab"]):
+			#print(a, b)
+			print(directions[a])
+			directions[a] = directions[a] // damping
+			for c in range(directions[a]):
+				keyboard.send(b)
+
 
 		if stick['hx'] == -1:
 			pass
@@ -161,7 +182,7 @@ while True:
 
 
 		if stick['b'][0]:
-			keyboard.send("ctrl+a")
+			keyboard.send("enter")
 		if stick['b'][1]:
 			keyboard.send("ctrl+w")
 		if stick['b'][2]:
@@ -169,9 +190,9 @@ while True:
 		if stick['b'][3]:
 			pass
 		if stick['b'][4]:
-			pass
+			keyboard.send("ctrl+page up")
 		if stick['b'][5]:
-			pass
+			keyboard.send("ctrl+page down")
 		if stick['b'][6]:
 			pass
 		if stick['b'][7]:
@@ -181,13 +202,14 @@ while True:
 		if stick['b'][9]:
 			pass
 		if stick['b'][10]:
-			keyboard.send("escape")
-			keyboard.send("ctrl+t")
-			time.sleep(2)
+			keyboard.send("f6")
+			time.sleep(0.5)
 			keyboard.write("https://www.youtube.com/watch?v=_-GaXa8tSBE", exact=True, delay=0.05)
 			keyboard.send("enter")
 			time.sleep(4)
 			keyboard.send("space")
+			keyboard.send("f")
+			keyboard.send("f11")
 
 		if stick['b'][11]:
 			pass
