@@ -1,7 +1,7 @@
 # JPxG, 2021 December 29
 # I'm going to try various things from the Internet that claim to accept input.
 
-import keyboard
+#import keyboard
 #while True:
 #	dog = keyboard.read_event(suppress=False)
 #	print(dog)
@@ -11,6 +11,9 @@ import keyboard
 # Anyway, it doesn't do anything for my mouse or joystick, so I am relegating it to idle curiosity.
 
 import hid
+#from pynput import keyboard
+#from pynput.keyboard import Key
+import keyboard
 
 def parseReport(report):
 	#print(report)
@@ -112,6 +115,57 @@ while True:
 	if report:
 		stick = parseReport(report)
 		print(makeDebugString(stick))
+		midpoint = 512
+		intervals = 16
+		goby = midpoint / intervals
+		directions = [0, 0, 0, 0]
+		for amount in range(1, intervals):
+			if stick['x'] < (midpoint - (goby * amount)):
+				directions[0] += 1
+			if stick['x'] > (midpoint + (goby * amount)):
+				directions[1] += 1
+			if stick['y'] < (midpoint - (goby * amount)):
+				directions[2] += 1
+			if stick['y'] > (midpoint + (goby * amount)):
+				directions[3] += 1
+
+		damping = 4
+		for a, b in enumerate(["left", "right", "up", "down"]):
+			print(a, b)
+			directions[a] = directions[a] // damping
+			for c in range(directions[a]):
+				keyboard.send(b)
+
+		if stick['hx'] == -1:
+			keyboard.send('ctrl+')
+
+
+		if stick['b'][0]:
+			pass
+		if stick['b'][1]:
+			pass
+		if stick['b'][2]:
+			pass
+		if stick['b'][3]:
+			pass
+		if stick['b'][4]:
+			pass
+		if stick['b'][5]:
+			pass
+		if stick['b'][6]:
+			pass
+		if stick['b'][7]:
+			pass
+		if stick['b'][8]:
+			pass
+		if stick['b'][9]:
+			pass
+		if stick['b'][10]:
+			pass
+		if stick['b'][11]:
+			pass
+
+		#keyboard.write('asdf')
 
 ########## Now the part where we deal with other stuff?
 
