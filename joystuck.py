@@ -14,6 +14,7 @@ import hid
 #from pynput import keyboard
 #from pynput.keyboard import Key
 import keyboard
+import time
 
 def parseReport(report):
 	#print(report)
@@ -180,7 +181,14 @@ while True:
 		if stick['b'][9]:
 			pass
 		if stick['b'][10]:
-			pass
+			keyboard.send("escape")
+			keyboard.send("ctrl+t")
+			time.sleep(2)
+			keyboard.write("https://www.youtube.com/watch?v=_-GaXa8tSBE", exact=True, delay=0.05)
+			keyboard.send("enter")
+			time.sleep(4)
+			keyboard.send("space")
+
 		if stick['b'][11]:
 			pass
 
