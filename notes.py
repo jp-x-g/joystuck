@@ -179,3 +179,6 @@ First three are bizarre.
 """
 
 
+
+
+{'tab': 23, 'left': 2, 'down': 40, 'w': 8, 'ctrl': 5, 'page down': 4, 'g': 1, 'q': 5, 'enter': 3, 'up': 18, 'right': 1, 'esc': 1, '1': 1, 'page up': 1, 'z': 2, 'r': 1, 'a': 6, 'o': 1, 'home': 1, 'c': 15}

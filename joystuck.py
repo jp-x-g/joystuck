@@ -40,9 +40,9 @@ def parseReport(report):
 	##### Now we will decode the raw output from the controller into values.
 	yroll = report[2] % 16
 	xroll = report[1] % 4
-	# yes, they really encoded the rollover from the x pitch into the y pitch, an analog readout whose rollover is itself encoded into the hat switch readout.
-	# even though they had a completely unused four bits in the encoding for the seventh position.
-	# lmao.
+	# yes, they really encoded the rollover from the x pitch into the y pitch, an ADC readout whose rollover is itself encoded into the hat switch readout
+	# even though they had a completely unused four bits in the encoding for the seventh position
+	# lmao
 
 	stick['x'] = (xroll * 256) + report[0]
 	stick['y'] = (yroll * 64) + ((report[1] - xroll) // 4)
@@ -109,8 +109,61 @@ j.set_nonblocking(True)
 
 # The following thing sets up an infinite loop to read input from the stick. Not ideal.
 
-zcooldown = 0
-zcooldownMax = 64
+cooldown = 0
+
+defaultBindings = [
+	"enter",
+	"ctrl+w",
+	"",
+	"",
+	"ctrl+page up",
+	"ctrl+page down",
+	"",
+	"",
+	"",
+	"",
+	"",
+	""]
+
+huggleBindings = [
+	"tab",
+	"o",
+	"q",
+	"9",
+	"z",
+	"4",
+	"`",
+	"esc",
+	"g",
+	"",
+	"",
+	"",]
+
+# Trigger: tab (next edit)
+# B2:	g (good edit)
+# B3:	q (revert+warn)
+# B4:	9 (unexplained deletion)
+# B5: 	z (no verifiable reliable source)
+# B6:	4 (mos)
+# B7:	` (warn for spam)
+# B8:	esc (escape menu)
+# B9:	g (mark edit as good)
+# B10:	o (open edit in browser)
+# B11:
+# B12: Toggle
+
+"""
+0: Attack: Personal attack against editor
+1: Disruptive editing
+2: Errors: Factual errors
+3: Joke edit (improper humor in articles)
+4: Manual of Style
+5: NPOV: Biased content
+"""
+toggle = 0
+
+bindings = [defaultBindings, huggleBindings]
+
 
 while True:
 	#report = j.read(64)
@@ -118,9 +171,11 @@ while True:
 	report = j.read(256)
 	if report:
 		stick = parseReport(report)
-		print(makeDebugString(stick))
-
+		print(makeDebugString(stick), cooldown)
+		cooldownMax = 255 - stick['t']
+		cooldown -= 10
 		# Extremely baroque way to parse x/y joystick input for scrolling.
+		"""
 		midpoint = 512
 		intervals = 16
 		goby = midpoint / intervals
@@ -139,22 +194,41 @@ while True:
 			#print(a, b)
 			directions[a] = directions[a] // damping
 			for c in range(directions[a]):
-				keyboard.send(b)
-
-		# Slightly less baroque way to parse z input for ctrl+pageup.
+				if cooldown < 0:
+					cooldown = cooldownMax
+					keyboard.send(b)
 		"""
-		zcooldown -= 1
-		if stick['z'] < 64:
-			if zcooldown < 0:
-				zcooldown = zcooldownMax
-				keyboard.send("shift+tab")
-		if stick['z'] > 192:
-			if zcooldown < 0:
-				zcooldown = zcooldownMax
-				keyboard.send("shift+tab")
-		"""
+		# Slightly less baroque way.
 
-		# Try the baroque way.
+		midpoint = 512
+		damping = 32
+		# We'll send an additional keystroke for every __ positions away from the middle.
+
+		dirX = (stick['x'] - midpoint) // damping
+		dirY = (stick['y'] - midpoint) // damping
+		print (dirX, dirY)
+
+		directions = [0, 0, 0, 0]
+		#             l  r  u  d
+		if (stick['x'] < midpoint):
+			directions[0] = (midpoint - stick['x']) // damping
+		if (stick['x'] > midpoint):
+			directions[1] = (stick['x'] - midpoint) // damping
+		if (stick['y']  < midpoint):
+			directions[2] = (midpoint - stick['y']) // damping
+		if (stick['y']  > midpoint):
+			directions[3] = (stick['y'] - midpoint) // damping
+		print(directions)
+
+		if cooldown < 0:
+			for a, b in enumerate(["left", "right", "up", "down"]):
+				for c in range(directions[a]):
+					keyboard.send(b)
+					cooldown = cooldownMax
+
+
+
+		# Baroque way for Z.
 		midpoint = 127
 		intervals = 16
 		goby = midpoint / intervals
@@ -164,44 +238,68 @@ while True:
 				directions[0] += 1
 			if stick['z'] > (midpoint + (goby * amount)):
 				directions[1] += 1
-		damping = 8
+		damping = 16
 		for a, b in enumerate(["shift+tab", "tab"]):
 			#print(a, b)
-			print(directions[a])
+			#print(directions[a])
 			directions[a] = directions[a] // damping
 			for c in range(directions[a]):
-				keyboard.send(b)
+				if cooldown < 0:
+					cooldown = cooldownMax
+					keyboard.send(b)
 
 
 		if stick['hx'] == -1:
 			pass
-			#keyboard.send("cmd+left")
+			keyboard.send("[")
 		if stick['hx'] == 1:
 			pass
-			#keyboard.send("cmd+right")
+			keyboard.send("]")
+		for a, b in enumerate(bindings[toggle]):
+			if (stick['b'][a] == 1) and (pstick['b'][a] == 0):
+				if (b != ""):
+					keyboard.send(b)
+		if (stick['b'][11] == 1) and (pstick['b'][11] == 0):
+			toggle = ((toggle + 1) % len(bindings))
+			print("Bindings toggled")
+			# Increments toggle by 1, unless it is the length of the bindings list-of-lists, in which case it puts it back to zero.
 
 
-		if stick['b'][0]:
+		"""
+		# Stupid, baroque way of doing this.
+		if stick['b'][0] and (pstick['b'][0] == 0):
+			#if cooldown < 0:
+			#	cooldown = cooldownMax
+			#	keyboard.send("enter")
 			keyboard.send("enter")
-		if stick['b'][1]:
+		if stick['b'][1] and (pstick['b'][1] == 0):
+			#if cooldown < 0:
+			#	cooldown = cooldownMax
+			#	keyboard.send("ctrl+w")
 			keyboard.send("ctrl+w")
-		if stick['b'][2]:
+		if stick['b'][2] and (pstick['b'][2] == 0):
 			pass
-		if stick['b'][3]:
+		if stick['b'][3] and (pstick['b'][3] == 0):
 			pass
-		if stick['b'][4]:
+		if stick['b'][4] and (pstick['b'][4] == 0):
+			#if cooldown < 0:
+			#	cooldown = cooldownMax
+			#	keyboard.send("ctrl+page up")
 			keyboard.send("ctrl+page up")
-		if stick['b'][5]:
+		if stick['b'][5] and (pstick['b'][5] == 0):
+			#if cooldown < 0:
+			#	cooldown = cooldownMax
+			#	keyboard.send("ctrl+page down")
 			keyboard.send("ctrl+page down")
-		if stick['b'][6]:
+		if stick['b'][6] and (pstick['b'][6] == 0):
 			pass
-		if stick['b'][7]:
+		if stick['b'][7] and (pstick['b'][7] == 0):
 			pass
-		if stick['b'][8]:
+		if stick['b'][8] and (pstick['b'][8] == 0):
 			pass
-		if stick['b'][9]:
+		if stick['b'][9] and (pstick['b'][9] == 0):
 			pass
-		if stick['b'][10]:
+		if stick['b'][10] and i(ptick['b'][10] == 0):
 			keyboard.send("f6")
 			time.sleep(0.5)
 			keyboard.write("https://www.youtube.com/watch?v=_-GaXa8tSBE", exact=True, delay=0.05)
@@ -211,8 +309,10 @@ while True:
 			keyboard.send("f")
 			keyboard.send("f11")
 
-		if stick['b'][11]:
+		if stick['b'][11] and i(ptick['b'][11] == 0):
 			pass
+		"""
+		pstick = stick
 
 		#keyboard.write('asdf')
 
