@@ -143,7 +143,7 @@ First three are bizarre.
 
 
 0: Left-to-right (increasing to right, rolls over several times, seems to have nothing as an incrementor)
-	Looks almost like it's incremented by [1] (0 on the left, 3 on the right), but this makes no sense.
+	Looks almost like it's incremented by [1] (0 on the left, 4 on the right), but this makes no sense.
 1: Towards-to-away (increasing to towards, rolls over several times
 	Incremented by [2] from 128 to 143.
 2: C-stick in center, but also looks like it does some incrementing with [1]. When towards-to-away is neutral:
@@ -181,4 +181,26 @@ First three are bizarre.
 
 
 
-{'tab': 23, 'left': 2, 'down': 40, 'w': 8, 'ctrl': 5, 'page down': 4, 'g': 1, 'q': 5, 'enter': 3, 'up': 18, 'right': 1, 'esc': 1, '1': 1, 'page up': 1, 'z': 2, 'r': 1, 'a': 6, 'o': 1, 'home': 1, 'c': 15}
+"""
+January 2: trying something VERY hoopty.
+
+Per https://unix.stackexchange.com/questions/473769/sound-doesnt-work-properly-in-root-but-does-in-normal-user
+
+
+
+    Copy this folder /home/normal-user/.config/pulse into your home (/root/.config) from another "normal" user.
+
+    In /root/.config/autostart (if the folder doesn't exist create it) make a file with this content:
+
+    [Desktop Entry]
+    Type=Application
+    Terminal=false
+    OnlyShowIn=GNOME;KDE
+    Exec=pulseaudio
+    Name=pulseaudio
+    Comment=Volume/audio controls
+
+    And name it pulseaudio.desktop (the important thing is the .desktop).
+    Double click and you are ok (trust and launch).
+
+    Now every time that you log in (as root) your sound will be fine.

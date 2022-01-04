@@ -1,0 +1,6 @@
+# JPxG, 2022 January 3
+cfg/*
+!cfg/template.toml
+notes*
+test*
+cfg/test*

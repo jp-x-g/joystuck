@@ -11,10 +11,17 @@
 # Anyway, it doesn't do anything for my mouse or joystick, so I am relegating it to idle curiosity.
 
 import hid
+# This needs to be run as root to work.
 #from pynput import keyboard
 #from pynput.keyboard import Key
 import keyboard
+# This needs to be run as root to work.
 import time
+
+import os
+#from playsound import playsound
+
+import threading
 
 def parseReport(report):
 	#print(report)
@@ -89,6 +96,9 @@ def makeDebugString(stick):
 		string += " | "
 	return string
 
+def playWav(file):
+	os.system("sudo -u x XDG_RUNTIME_DIR=/run/user/1000 paplay " + file + "&")
+
 print("Joystuck 0.1 -- JPxG, 2021 December 30")
 print("Attempting to open device.")
 
@@ -125,6 +135,22 @@ defaultBindings = [
 	"",
 	""]
 
+defaultZ = ["shift+tab", "tab"]
+
+defaultSounds = [
+	"/home/x/2k2k/sound/twispark-15ai-b1.wav",
+	"/home/x/2k2k/sound/twispark-15ai-2.wav",
+	"/home/x/2k2k/sound/twispark-15ai-3.wav",
+	"/home/x/2k2k/sound/twispark-15ai-4.wav",
+	"/home/x/2k2k/sound/twispark-15ai-5.wav",
+	"/home/x/2k2k/sound/twispark-15ai-6.wav",
+	"/home/x/2k2k/sound/twispark-15ai-7.wav",
+	"/home/x/2k2k/sound/twispark-15ai-8.wav",
+	"/home/x/2k2k/sound/twispark-15ai-9.wav",
+	"/home/x/2k2k/sound/twispark-15ai-10.wav",
+	"/home/x/2k2k/sound/twispark-15ai-11.wav",
+	"/home/x/2k2k/sound/twispark-15ai-toggling.wav"]
+
 huggleBindings = [
 	"tab",
 	"o",
@@ -133,47 +159,77 @@ huggleBindings = [
 	"z",
 	"4",
 	"`",
-	"esc",
-	"g",
+	"w",
+	"r",
+	"enter",
+	"c",
+	""]
+
+huggleZ = ["up", "down"]
+
+
+huggleSounds = [
+	"/home/x/2k2k/sound/saw-220-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-440-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-494-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-523-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-587-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-659-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-698-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-783-1s-08-taperafter01.wav",
+	"/home/x/2k2k/sound/saw-880-1s-08-taperafter01.wav",
 	"",
 	"",
-	"",]
+	""]
+
+huggleSounds = [
+	"/home/x/2k2k/sound/glados-revisionpassed.wav",
+	"/home/x/2k2k/sound/glados-editopenedinbrowser.wav",
+	"/home/x/2k2k/sound/glados-revertedandwarned.wav",
+	"/home/x/2k2k/sound/glados-unexplaineddeletionrv.wav",
+	"/home/x/2k2k/sound/glados-unsourcedrevert.wav",
+	"/home/x/2k2k/sound/glados-mosviolation.wav",
+	"/home/x/2k2k/sound/glados-promotionalwarning.wav",
+	"/home/x/2k2k/sound/glados-nonconstructivewarning.wav",
+	"/home/x/2k2k/sound/glados-onlyreverting.wav",
+	"/home/x/2k2k/sound/glados-confirmingdialogue.wav",
+	"/home/x/2k2k/sound/glados-contribs.wav",
+	"/home/x/2k2k/sound/glados-toggling.wav",
+]
 
 # Trigger: tab (next edit)
-# B2:	g (good edit)
-# B3:	q (revert+warn)
-# B4:	9 (unexplained deletion)
-# B5: 	z (no verifiable reliable source)
-# B6:	4 (mos)
-# B7:	` (warn for spam)
-# B8:	esc (escape menu)
-# B9:	g (mark edit as good)
-# B10:	o (open edit in browser)
-# B11:
-# B12: Toggle
+# B2 :		o (open edit in browser)
+# B3 :		q (revert+warn)
+# B4 :		9 (unexplained deletion)
+# B5 :	 	z (no verifiable reliable source)
+# B6 :		4 (mos)
+# B7 :		` (warn for spam)
+# B8 :		w (warn non-constructive)
+# B9 :		r (revert with no warning)
+# B10:		enter (enter)
+# B11:		c (open user contributions)
+# B12:	 	Toggle
+# H-left:	[
+# H-right: 	]
 
-"""
-0: Attack: Personal attack against editor
-1: Disruptive editing
-2: Errors: Factual errors
-3: Joke edit (improper humor in articles)
-4: Manual of Style
-5: NPOV: Biased content
-"""
 toggle = 0
 
+sounds = [defaultSounds, huggleSounds]
 bindings = [defaultBindings, huggleBindings]
+z = [defaultZ, huggleZ]
 
+
+cooldown = 255
 
 while True:
 	#report = j.read(64)
 	# Works with 64
 	report = j.read(256)
+	cooldown -= 0.001
 	if report:
 		stick = parseReport(report)
 		print(makeDebugString(stick), cooldown)
 		cooldownMax = 255 - stick['t']
-		cooldown -= 10
 		# Extremely baroque way to parse x/y joystick input for scrolling.
 		"""
 		midpoint = 512
@@ -206,10 +262,10 @@ while True:
 
 		dirX = (stick['x'] - midpoint) // damping
 		dirY = (stick['y'] - midpoint) // damping
-		print (dirX, dirY)
+		#print (dirX, dirY)
 
 		directions = [0, 0, 0, 0]
-		#             l  r  u  d
+		#------------ l  r  u  d
 		if (stick['x'] < midpoint):
 			directions[0] = (midpoint - stick['x']) // damping
 		if (stick['x'] > midpoint):
@@ -218,7 +274,7 @@ while True:
 			directions[2] = (midpoint - stick['y']) // damping
 		if (stick['y']  > midpoint):
 			directions[3] = (stick['y'] - midpoint) // damping
-		print(directions)
+		#print(directions)
 
 		if cooldown < 0:
 			for a, b in enumerate(["left", "right", "up", "down"]):
@@ -227,6 +283,24 @@ while True:
 					cooldown = cooldownMax
 
 
+		# Implement Z axis.
+
+		midpointz = 128
+		dampingz = 8
+
+		directionsz = [0, 0]
+		#------------ l  r
+
+		if (stick['z'] < midpointz):
+			directionsz[0] = (midpointz - stick['z']) // dampingz
+		if (stick['z'] > midpointz):
+			directionsz[1] = (stick['z'] - midpointz) // dampingz
+
+		if cooldown < 0:
+			for a, b in enumerate(z[toggle]):
+				for c in range(directionsz[a]):
+					keyboard.send(b)
+					cooldown = cooldownMax
 
 		# Baroque way for Z.
 		midpoint = 127
@@ -249,16 +323,34 @@ while True:
 					keyboard.send(b)
 
 
-		if stick['hx'] == -1:
+
+		if (stick['hx'] == -1) and (pstick['hx'] != -1):
 			pass
 			keyboard.send("[")
-		if stick['hx'] == 1:
+		if (stick['hx'] == 1) and (pstick['hx']!= 1):
 			pass
 			keyboard.send("]")
+
+		try:
+			pstick
+		except NameError:
+			pstick = stick
+
 		for a, b in enumerate(bindings[toggle]):
 			if (stick['b'][a] == 1) and (pstick['b'][a] == 0):
 				if (b != ""):
 					keyboard.send(b)
+		for a, b in enumerate(sounds[toggle]):
+			if (stick['b'][a] == 1) and (pstick['b'][a] == 0):
+				if (b != ""):
+					print(b)
+					#playsound(b)
+					#os.system("paplay " + b)
+					# Doesn't work as root.
+					if __name__ == "__main__":
+						threade = threading.Thread(target=playWav(b), daemon=True)
+						threade.start()
+
 		if (stick['b'][11] == 1) and (pstick['b'][11] == 0):
 			toggle = ((toggle + 1) % len(bindings))
 			print("Bindings toggled")
