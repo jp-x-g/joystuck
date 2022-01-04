@@ -18,7 +18,7 @@ import keyboard
 import time
 
 presses = {}
-
+"""
 while True:
 	press = str(keyboard.read_event())
 	if (press[-5:] != "down)"):
@@ -29,3 +29,4 @@ while True:
 		else:
 			presses[press] = 1
 		print(presses)
+		"""

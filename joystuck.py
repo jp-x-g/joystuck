@@ -22,6 +22,10 @@ import os
 #from playsound import playsound
 
 import threading
+# Needed for non-blocking audio file play
+
+import toml
+# Needed to read config files
 
 def parseReport(report):
 	#print(report)
