@@ -27,6 +27,14 @@ import threading
 import toml
 # Needed to read config files
 
+from random import randrange
+# Needed to select sound files from lists
+
+from datetime import datetime
+# Needed for typing out warning messages (sad).
+
+verbose = 0
+
 def parseReport(report):
 	#print(report)
 	# 0 = left-to-right (increasing to right)
@@ -103,19 +111,88 @@ def makeDebugString(stick):
 def playWav(file):
 	os.system("sudo -u x XDG_RUNTIME_DIR=/run/user/1000 paplay " + file + "&")
 
+def TypeWarning():
+	#keyboard.send("m")
+	#time.sleep(1)
+	datestring = str(datetime.now().strftime("%B %Y")).lower()
+	keyboard.press("shift")
+	for char in datestring:
+		keyboard.send(char)
+		keyboard.release("shift")
+		time.sleep(0.03)
+	#keyboard.write(datestring, exact=1, delay=0.05)
+	#os.system("echo '" + datestring + "'|xclip")
+	#keyboard.send("ctrl+v")
+	#os.system("echo '{{subst:uw-spam4}} ~~~~'|xclip")
+	keyboard.send("tab")
+	time.sleep(0.2)
+	keyboard.send("ctrl+a")
+	time.sleep(0.2)
+	keyboard.send("ctrl+v")
+	print("Clipboard contents pasted to page.")
+
 print("Joystuck 0.1 -- JPxG, 2021 December 30")
+
+print("Loading enabled configurations:")
+cfgPath = "cfg"
+sndPath = "snd"
+cfg = []
+for filename in os.listdir(cfgPath):
+	if (filename != "template.toml"):
+		file = open(str(cfgPath + "/" + filename))
+		text = file.read()
+		thistoml = toml.loads(text)
+		if (thistoml['metadata']['enabled'] == 'yes'):
+			cfg.append(thistoml)
+for i in cfg:
+	print(">   " + i['metadata']['title'])
+#print(cfg)
+toggle = 0
+soundToggle = 0
+bindings = [cfg[toggle]['buttons'][str(x)] for x in range(1,13)]
+
+
+allInputs = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+			"hatu", "hatd", "hatl", "hatr", "hatul", "hatur", "hatdl", "hatdr",
+			"xminus", "xplus", "yminus", "yplus", "zminus", "zplus"]
+
+sounds = {}
+emptySounds = {}
+
+for c in allInputs:
+	emptySounds[c] = ""
+
+cfg[toggle]['sounds']['0'] = emptySounds
+
+toggleSoundIsBound = 0
+if (cfg[toggle]['metadata']['sounds'] == "on"):
+	for c in cfg[toggle]['buttons']:
+		if cfg[toggle]['buttons'][c] == "togglesound":
+			toggleSoundIsBound = 1
+			# Check if there's a key set to toggle sound.
+if (toggleSoundIsBound == 1) or (cfg[toggle]['metadata']['sounds'] == "off"):
+	# If there's a "toggle sound" bind, OR if sounds are disabled for this cfg.
+	sounds = emptySounds
+else:
+	sounds = cfg[toggle]['sounds']['1']
+
+print(bindings)
+
+# Set up sounds for initial configuration file.
+
+
 print("Attempting to open device.")
 
 for device in hid.enumerate():
 	print(device)
 	print(f"0x{device['vendor_id']:04x}:0x{device['product_id']:04x}")
 
-j = hid.device()
-j.open(0x046D, 0xC215)
-#j.open(0xC215, 0x046D)
+inputDevice = hid.device()
+inputDevice.open(0x046D, 0xC215)
+#inputDevice.open(0xC215, 0x046D)
 # This is the vendor ID and product ID for the device.
 print("Device opened, with vendor ID 0x046D and product ID 0xC215.")
-j.set_nonblocking(True)
+inputDevice.set_nonblocking(True)
 
 # Set up debug for y-roll
 #values = [0 for n in range(4100)]
@@ -123,210 +200,77 @@ j.set_nonblocking(True)
 
 # The following thing sets up an infinite loop to read input from the stick. Not ideal.
 
-cooldown = 0
-
-defaultBindings = [
-	"enter",
-	"ctrl+w",
-	"",
-	"",
-	"ctrl+page up",
-	"ctrl+page down",
-	"",
-	"",
-	"",
-	"",
-	"",
-	""]
-
-defaultZ = ["shift+tab", "tab"]
-
-defaultSounds = [
-	"/home/x/2k2k/sound/twispark-15ai-b1.wav",
-	"/home/x/2k2k/sound/twispark-15ai-2.wav",
-	"/home/x/2k2k/sound/twispark-15ai-3.wav",
-	"/home/x/2k2k/sound/twispark-15ai-4.wav",
-	"/home/x/2k2k/sound/twispark-15ai-5.wav",
-	"/home/x/2k2k/sound/twispark-15ai-6.wav",
-	"/home/x/2k2k/sound/twispark-15ai-7.wav",
-	"/home/x/2k2k/sound/twispark-15ai-8.wav",
-	"/home/x/2k2k/sound/twispark-15ai-9.wav",
-	"/home/x/2k2k/sound/twispark-15ai-10.wav",
-	"/home/x/2k2k/sound/twispark-15ai-11.wav",
-	"/home/x/2k2k/sound/twispark-15ai-toggling.wav"]
-
-huggleBindings = [
-	"tab",
-	"o",
-	"q",
-	"9",
-	"z",
-	"4",
-	"`",
-	"w",
-	"r",
-	"enter",
-	"c",
-	""]
-
-huggleZ = ["up", "down"]
-
-
-huggleSounds = [
-	"/home/x/2k2k/sound/saw-220-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-440-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-494-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-523-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-587-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-659-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-698-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-783-1s-08-taperafter01.wav",
-	"/home/x/2k2k/sound/saw-880-1s-08-taperafter01.wav",
-	"",
-	"",
-	""]
-
-huggleSounds = [
-	"/home/x/2k2k/sound/glados-revisionpassed.wav",
-	"/home/x/2k2k/sound/glados-editopenedinbrowser.wav",
-	"/home/x/2k2k/sound/glados-revertedandwarned.wav",
-	"/home/x/2k2k/sound/glados-unexplaineddeletionrv.wav",
-	"/home/x/2k2k/sound/glados-unsourcedrevert.wav",
-	"/home/x/2k2k/sound/glados-mosviolation.wav",
-	"/home/x/2k2k/sound/glados-promotionalwarning.wav",
-	"/home/x/2k2k/sound/glados-nonconstructivewarning.wav",
-	"/home/x/2k2k/sound/glados-onlyreverting.wav",
-	"/home/x/2k2k/sound/glados-confirmingdialogue.wav",
-	"/home/x/2k2k/sound/glados-contribs.wav",
-	"/home/x/2k2k/sound/glados-toggling.wav",
-]
-
-# Trigger: tab (next edit)
-# B2 :		o (open edit in browser)
-# B3 :		q (revert+warn)
-# B4 :		9 (unexplained deletion)
-# B5 :	 	z (no verifiable reliable source)
-# B6 :		4 (mos)
-# B7 :		` (warn for spam)
-# B8 :		w (warn non-constructive)
-# B9 :		r (revert with no warning)
-# B10:		enter (enter)
-# B11:		c (open user contributions)
-# B12:	 	Toggle
-# H-left:	[
-# H-right: 	]
-
-toggle = 0
-
-sounds = [defaultSounds, huggleSounds]
-bindings = [defaultBindings, huggleBindings]
-z = [defaultZ, huggleZ]
-
-
 cooldown = 255
 
 while True:
-	#report = j.read(64)
+	#report = inputDevice.read(64)
 	# Works with 64
-	report = j.read(256)
+	report = inputDevice.read(256)
 	cooldown -= 0.001
 	if report:
 		stick = parseReport(report)
-		print(makeDebugString(stick), cooldown)
+		if verbose: print(makeDebugString(stick), cooldown)
 		cooldownMax = 255 - stick['t']
-		# Extremely baroque way to parse x/y joystick input for scrolling.
-		"""
-		midpoint = 512
-		intervals = 16
-		goby = midpoint / intervals
-		directions = [0, 0, 0, 0]
-		for amount in range(1, intervals):
-			if stick['x'] < (midpoint - (goby * amount)):
-				directions[0] += 1
-			if stick['x'] > (midpoint + (goby * amount)):
-				directions[1] += 1
-			if stick['y'] < (midpoint - (goby * amount)):
-				directions[2] += 1
-			if stick['y'] > (midpoint + (goby * amount)):
-				directions[3] += 1
-		damping = 4
-		for a, b in enumerate(["left", "right", "up", "down"]):
-			#print(a, b)
-			directions[a] = directions[a] // damping
-			for c in range(directions[a]):
-				if cooldown < 0:
-					cooldown = cooldownMax
-					keyboard.send(b)
-		"""
-		# Slightly less baroque way.
 
 		midpoint = 512
-		damping = 32
+		dampingx = int(cfg[toggle]['axes']['xdamp'])
+		dampingy = int(cfg[toggle]['axes']['ydamp'])
 		# We'll send an additional keystroke for every __ positions away from the middle.
 
-		dirX = (stick['x'] - midpoint) // damping
-		dirY = (stick['y'] - midpoint) // damping
+		dirX = (stick['x'] - midpoint) // dampingx
+		dirY = (stick['y'] - midpoint) // dampingy
 		#print (dirX, dirY)
 
 		directions = [0, 0, 0, 0]
 		#------------ l  r  u  d
 		if (stick['x'] < midpoint):
-			directions[0] = (midpoint - stick['x']) // damping
+			directions[0] = (midpoint - stick['x']) // dampingx
 		if (stick['x'] > midpoint):
-			directions[1] = (stick['x'] - midpoint) // damping
+			directions[1] = (stick['x'] - midpoint) // dampingx
 		if (stick['y']  < midpoint):
-			directions[2] = (midpoint - stick['y']) // damping
+			directions[2] = (midpoint - stick['y']) // dampingy
 		if (stick['y']  > midpoint):
-			directions[3] = (stick['y'] - midpoint) // damping
+			directions[3] = (stick['y'] - midpoint) // dampingy
 		#print(directions)
 
+		# For example, if X and Y are positive, you might get:
+		# [0, 0, 5, 8]
+		# If they're both neutral:
+		# [0, 0, 0, 0]
+		# If X is all the way left, damping is 8, and Y is neutral:
+		# [64, 0, 0, 0]
+		# i.e. "send the X-minus hotkey 64 times, do nothing else".
+
 		if cooldown < 0:
-			for a, b in enumerate(["left", "right", "up", "down"]):
-				for c in range(directions[a]):
-					keyboard.send(b)
-					cooldown = cooldownMax
+			# Old: ["left", "right", "up", "down"]
+			for a, b in enumerate([cfg[toggle]['axes']['xminus'], cfg[toggle]['axes']['xplus'], cfg[toggle]['axes']['yminus'], cfg[toggle]['axes']['yplus']]):
+				if (b != ""):
+					for c in range(directions[a]):
+						keyboard.send(b)
+						cooldown = cooldownMax
 
 
 		# Implement Z axis.
 
 		midpointz = 128
-		dampingz = 8
+		dampingz = int(cfg[toggle]['axes']['zdamp'])
 
 		directionsz = [0, 0]
-		#------------ l  r
+		#------------- l  r
 
 		if (stick['z'] < midpointz):
 			directionsz[0] = (midpointz - stick['z']) // dampingz
 		if (stick['z'] > midpointz):
 			directionsz[1] = (stick['z'] - midpointz) // dampingz
 
+		# For example, if Z is below the midpoint, you might get [10, 0],
+		# if Z is above, [0, 5], and if Z is neutral, [0, 0].
+
 		if cooldown < 0:
-			for a, b in enumerate(z[toggle]):
+			for a, b in enumerate([cfg[toggle]['axes']['zminus'], cfg[toggle]['axes']['zplus']]):
 				for c in range(directionsz[a]):
 					keyboard.send(b)
 					cooldown = cooldownMax
-
-		# Baroque way for Z.
-		midpoint = 127
-		intervals = 16
-		goby = midpoint / intervals
-		directions = [0, 0]
-		for amount in range(1, intervals):
-			if stick['z'] < (midpoint - (goby * amount)):
-				directions[0] += 1
-			if stick['z'] > (midpoint + (goby * amount)):
-				directions[1] += 1
-		damping = 16
-		for a, b in enumerate(["shift+tab", "tab"]):
-			#print(a, b)
-			#print(directions[a])
-			directions[a] = directions[a] // damping
-			for c in range(directions[a]):
-				if cooldown < 0:
-					cooldown = cooldownMax
-					keyboard.send(b)
-
-
 
 		if (stick['hx'] == -1) and (pstick['hx'] != -1):
 			pass
@@ -340,146 +284,68 @@ while True:
 		except NameError:
 			pstick = stick
 
-		for a, b in enumerate(bindings[toggle]):
+		# Parse all of the bindings for button presses.
+		for a, b in enumerate(bindings):
 			if (stick['b'][a] == 1) and (pstick['b'][a] == 0):
-				if (b != ""):
-					keyboard.send(b)
-		for a, b in enumerate(sounds[toggle]):
-			if (stick['b'][a] == 1) and (pstick['b'][a] == 0):
-				if (b != ""):
-					print(b)
-					#playsound(b)
-					#os.system("paplay " + b)
-					# Doesn't work as root.
+				# If button is pressed, but wasn't last cycle
+				if (b == "toggle"):
+					toggle = ((toggle + 1) % len(cfg))
+					# Increments toggle by 1, unless it is the length of the
+					# number of bindings, in which case it puts it back to zero
+					bindings = [cfg[toggle]['buttons'][str(x)] for x in range(1,13)]
+					print("Bindings toggled to " + cfg[toggle]['metadata']['title'])
+					# Now we set the default sounds.
+					cfg[toggle]['sounds']['0'] = emptySounds
+					toggleSoundIsBound = 0
+					for c in cfg[toggle]['buttons']:
+						if cfg[toggle]['buttons'][c] == "togglesound":
+							toggleSoundIsBound = 1
+							# Check if there's a key set to toggle sound.
+					if (cfg[toggle]['metadata']['sounds'] == "off") or (toggleSoundIsBound == 1):
+						# If sounds are disabled, OR if there's a toggle sound hotkey bound.
+						for c in allInputs:		
+							sounds[c] = ""
+					else:
+						sounds = cfg[toggle]['sounds']['1']
+				elif (b == "togglesound"):
+					print(cfg[toggle]['sounds'])
+					print(len(cfg[toggle]['sounds']))
+					soundToggle = ((soundToggle + 1) % len(cfg[toggle]['sounds']))
+					sounds = cfg[toggle]['sounds'][str(soundToggle)]
+				elif (b != ""):
+					if (b[:8] == "function"):
+						#print(b)
+						#print(b[9:])
+						locals()[b[9:]]()
+					# Allows you to define a function call,
+					# if you put "function xyz" as the hotkey.
+					else:
+						keyboard.send(b)
+		#print(sounds)
+		#print(stick)
+		for a in range(1, 12):
+			if (stick['b'][a - 1] == 1) and (pstick['b'][a - 1] == 0):
+				# If button is pressed, but wasn't last cycle
+				sound = sounds[str(a)]
+				if (sound != ""):
+					#print(type(sound))
+					if (type(sound) is list):
+						# If it's a list, select an element randomly.
+						sound = sound[randrange(len(sound))]
+						if (sounds['path'] == 'relative'):
+							sound = sndPath + "/" + sound
 					if __name__ == "__main__":
-						threade = threading.Thread(target=playWav(b), daemon=True)
+						# Once we have a sound, start a thread to play it.
+						threade = threading.Thread(target=playWav(sound), daemon=True)
 						threade.start()
 
-		if (stick['b'][11] == 1) and (pstick['b'][11] == 0):
-			toggle = ((toggle + 1) % len(bindings))
-			print("Bindings toggled")
-			# Increments toggle by 1, unless it is the length of the bindings list-of-lists, in which case it puts it back to zero.
-
-
-		"""
-		# Stupid, baroque way of doing this.
-		if stick['b'][0] and (pstick['b'][0] == 0):
-			#if cooldown < 0:
-			#	cooldown = cooldownMax
-			#	keyboard.send("enter")
-			keyboard.send("enter")
-		if stick['b'][1] and (pstick['b'][1] == 0):
-			#if cooldown < 0:
-			#	cooldown = cooldownMax
-			#	keyboard.send("ctrl+w")
-			keyboard.send("ctrl+w")
-		if stick['b'][2] and (pstick['b'][2] == 0):
-			pass
-		if stick['b'][3] and (pstick['b'][3] == 0):
-			pass
-		if stick['b'][4] and (pstick['b'][4] == 0):
-			#if cooldown < 0:
-			#	cooldown = cooldownMax
-			#	keyboard.send("ctrl+page up")
-			keyboard.send("ctrl+page up")
-		if stick['b'][5] and (pstick['b'][5] == 0):
-			#if cooldown < 0:
-			#	cooldown = cooldownMax
-			#	keyboard.send("ctrl+page down")
-			keyboard.send("ctrl+page down")
-		if stick['b'][6] and (pstick['b'][6] == 0):
-			pass
-		if stick['b'][7] and (pstick['b'][7] == 0):
-			pass
-		if stick['b'][8] and (pstick['b'][8] == 0):
-			pass
-		if stick['b'][9] and (pstick['b'][9] == 0):
-			pass
-		if stick['b'][10] and i(ptick['b'][10] == 0):
-			keyboard.send("f6")
-			time.sleep(0.5)
-			keyboard.write("https://www.youtube.com/watch?v=_-GaXa8tSBE", exact=True, delay=0.05)
-			keyboard.send("enter")
-			time.sleep(4)
-			keyboard.send("space")
-			keyboard.send("f")
-			keyboard.send("f11")
-
-		if stick['b'][11] and i(ptick['b'][11] == 0):
-			pass
-		"""
 		pstick = stick
-
-		#keyboard.write('asdf')
-
 ########## Now the part where we deal with other stuff?
 
 
 print("Wowie zowie!")
 
-
-
-
-
-
-
-
-
-
-
-
-
 ########## When all is said and done, we need to close out the joystick handle.
 
 
-j.close()
-
-
-# Here is some thing that Johnny found. Does not work if sudoed.
-
-"""
-
-from pynput import mouse, keyboard
-from pynput.keyboard import Key, Listener
-from pynput.mouse import Listener, Button, Controller
-
-
-def on_prass(key):
-    print(f"{key} pressed")
-
-
-def on_release(key):
-    print(f"{key} release")
-    if key == Key.esc:
-        # Stop listener
-        return False
-
-##### Mouse stuff. 
-
-def on_click(x, y, button, pressed):
-    print(f"{button}")
-
-
-def on_unclick(button):
-	print(f"{button} release")
-
-def on_mouve(x, y):
-	print(f"Moved to {x}, {y}")
-
-# Collect events until released
-#with keyboard.Listener(on_press=on_prass, on_release=on_release) as listener:
-#    listener.join()
-
-#with mouse.Listener(on_press=on_click, on_move=on_mouve) as mauslistener:
-#	mauslistener.join()
-
-keyListen = keyboard.Listener(on_press=on_prass, on_release=on_release)
-keyListen.start()
-
-mouseListen = mouse.Listener(on_click=on_click, on_move=on_mouve)
-mouseListen.start()
-
-while True:
-	pass
-
-	"""
+inputDevice.close()

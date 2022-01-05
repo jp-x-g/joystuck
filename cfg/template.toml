@@ -1,23 +1,32 @@
 [metadata]
-author: "JPxG"
-title: "Default JoyStuck bindings"
-date: "2022-01-03"
-enabled: "yes"
-sounds: "on"
+author   = "JPxG"
+title    = "Default JoyStuck bindings"
+date     = "2022-01-03"
+enabled  = "yes"
+sounds   = "on"
 
-[buttons]
+##################################################
 # Basic format looks like this:
-# "1":"page up"
-# "1+2":"ctrl+page up"
+#       "1":"page up"
+#       "1+2":"ctrl+page up"
 #
 # One of these must be set to "toggle", which toggles to next binding set.
-# If none is specified, it will use 12.
+#       If none is specified, it will use 12.
+#
+# Additionally, one of these SHOULD be set to "togglesound".
+#       This will make that button toggle through each soundpack
+#       (when the bindings are initially loaded, it will be silent
+#       and you will have to togglesound to get to the first one).
+#
+#       Otherwise, there is no silent mode, and the first soundpack
+#       will be the only usable one for this binding scheme.
 #
 # Special key names are as follows:
 #       left, right, up, down, esc, f1, f2 [...] f12,
 #       caps lock, scroll lock, num lock, pause,
 #       insert, delete, home, end, page up, page down,
 #       ctrl, alt, shift, tab, space, and menu.
+#
 # Numpad symbols are parsed differently from same keys on keyboard.
 #       / = "÷", * = "×", - = "-", and + = "+" (enter is still "enter").
 # Numpad keys are not affected by num lock being on: numpad "del"
@@ -26,32 +35,36 @@ sounds: "on"
 #
 # Note: Combos must be specified in increasing order.
 #       "1+2" is valid, "2+1" is not.
-"1":  "page up"
-"1+2": "ctrl+page up"
-"3":  ""
-"4":  ""
-"5":  ""
-"6":  ""
-"7":  ""
-"8":  ""
-"9":  ""
-"10": ""
-"11": ""
-"12": "toggle"
+##################################################
+[buttons]
+"1"      = "enter"
+"2"      = "ctrl+w"
+"3"      = ""
+"4"      = ""
+"5"      = ""
+"6"      = "ctrl+page up"
+"7"      = "ctrl+page down"
+"8"      = ""
+"9"      = ""
+"10"     = ""
+"11"     = "togglesound"
+"12"     = "toggle"
 
-[hat]
+##################################################
 # Hat switch directions: "u", "d", "l", and "r".
 # Also takes combos: "ul", "ur", "dr" and "dl".
-"u": ""
-"d": ""
-"l": ""
-"r": ""
-"ul": ""
-"ur": ""
-"dl": ""
-"dr": ""
+##################################################
+[hat]
+"u"      = ""
+"d"      = ""
+"l"      = ""
+"r"      = ""
+"ul"     = ""
+"ur"     = ""
+"dl"     = ""
+"dr"     = ""
 
-[axes]
+##################################################
 # X is left-to right   (minus is left and plus is right).
 # Y is towards-to-away (minus is away and plus is toward).
 # Z is twist           (minus is counterclockwise and plus is clockwise).
@@ -62,93 +75,113 @@ sounds: "on"
 # Damping can also be "off", in which case a single keystroke
 # will be sent when the value crosses a threshold.
 # The threshold value defaults to halfway pulled in whatever direction
-# (255 for x/y, 64 for z). If damping is on, "threshold" is unused.
+# (255 for x/y, 64 for z). If damping is on, "thres" is unused.
+##################################################
+[axes]
+"xminus" = "left"
+"xplus"  = "right"
 
-""
-"xminus": "left"
-"xplus": "right"
-"yminus": "up"
-"yplus": "down"
-"zminus": "shift+tab"
-"zplus": "tab"
-"xdamping": 32
-"ydamping": 32
-"zdamping": 8
-"xthreshold": 255
-"ythreshold": 255
-"zthreshold": 64
+"yminus" = "up"
+"yplus"  = "down"
+
+"zminus" = "shift+tab"
+"zplus"  = "tab"
+
+"xdamp"  = 32
+"ydamp"  = 32
+"zdamp"  = 16
+
+"xthres" = 255
+"ythres" = 255
+"zthres" = 64
+
+##################################################
+# Note: Combos must be given in increasing order.
+#       "1+2" is valid, "2+1" is not.
+##################################################
+[combos]
+"1+2"    = "ctrl+page up"
 
 
-
-# "sounds1" through "sounds100" can be specified.
-# They work the same way as the others.
+##################################################
+# Sounds can be included, [sounds.1] through whatever number.
+# Don't skip numbers.
+# Input buttons are the same as for the hotkeys.
+#
+# Multiple sounds can be given for one button/combo:
+# "1": ["badabing.wav", "badaboom.wav"]
+# Or just one:
+# "2": "powrightinthekisser.wav"
+#
 # "path" must either be "absolute" or "relative".
 # For "relative", they will be taken from /snd.
+##################################################
+[sounds.1]
+"path"   = "absolute"
+"1"      = "/home/x/2k2k/sound/saw-220-1s-08-taperafter01.wav"
+"2"      = "/home/x/2k2k/sound/saw-440-1s-08-taperafter01.wav"
+"3"      = "/home/x/2k2k/sound/saw-494-1s-08-taperafter01.wav"
+"4"      = "/home/x/2k2k/sound/saw-523-1s-08-taperafter01.wav"
+"5"      = "/home/x/2k2k/sound/saw-587-1s-08-taperafter01.wav"
+"6"      = "/home/x/2k2k/sound/saw-659-1s-08-taperafter01.wav"
+"7"      = "/home/x/2k2k/sound/saw-698-1s-08-taperafter01.wav"
+"8"      = "/home/x/2k2k/sound/saw-783-1s-08-taperafter01.wav"
+"9"      = "/home/x/2k2k/sound/saw-880-1s-08-taperafter01.wav"
+"10"     = ""
+"11"     = ""
+"12"     = "sine-880-to-440-badomp-1s-08-taper.wav"
 
-[sounds1]
-"path": "absolute"
-"1": "/home/x/2k2k/sound/saw-220-1s-08-taperafter01.wav"
-"2": "/home/x/2k2k/sound/saw-440-1s-08-taperafter01.wav"
-"3": "/home/x/2k2k/sound/saw-494-1s-08-taperafter01.wav"
-"4": "/home/x/2k2k/sound/saw-523-1s-08-taperafter01.wav"
-"5": "/home/x/2k2k/sound/saw-587-1s-08-taperafter01.wav"
-"6": "/home/x/2k2k/sound/saw-659-1s-08-taperafter01.wav"
-"7": "/home/x/2k2k/sound/saw-698-1s-08-taperafter01.wav"
-"8": "/home/x/2k2k/sound/saw-783-1s-08-taperafter01.wav"
-"9": "/home/x/2k2k/sound/saw-880-1s-08-taperafter01.wav"
-"10": ""
-"11": ""
-"12": ""
+"hatu"   = ""
+"hatd"   = ""
+"hatl"   = ""
+"hatr"   = ""
 
-"hatu": ""
-"hatd": ""
-"hatl": ""
-"hatr": ""
+"hatul"  = ""
+"hatur"  = ""
+"hatdl"  = ""
+"hatdr"  = ""
 
-"hatul": ""
-"hatur": ""
-"hatdl": ""
-"hatdr": ""
+"xminus" = ""
+"xplus"  = ""
 
-"xminus": ""
-"xplus":  ""
+"yminus" = ""
+"yplus"  = ""
 
-"yminus": ""
-"yplus":  ""
+"zminus" = ""
+"zplus"  = ""
 
-"zminus": ""
-"zplus":  ""
+##################################################
+[sounds.2]
+"path"   = "absolute"
+"1"      = "/home/x/2k2k/sound/twispark-15ai-b1.wav"
+"2"      = "/home/x/2k2k/sound/twispark-15ai-2.wav"
+"3"      = "/home/x/2k2k/sound/twispark-15ai-3.wav"
+"4"      = "/home/x/2k2k/sound/twispark-15ai-4.wav"
+"5"      = "/home/x/2k2k/sound/twispark-15ai-5.wav"
+"6"      = "/home/x/2k2k/sound/twispark-15ai-6.wav"
+"7"      = "/home/x/2k2k/sound/twispark-15ai-7.wav"
+"8"      = "/home/x/2k2k/sound/twispark-15ai-8.wav"
+"9"      = "/home/x/2k2k/sound/twispark-15ai-9.wav"
+"10"     = "/home/x/2k2k/sound/twispark-15ai-10.wav"
+"11"     = "/home/x/2k2k/sound/twispark-15ai-11.wav"
+"12"     = "/home/x/2k2k/sound/twispark-15ai-toggling.wav"
 
-[sounds2]
-"path": "absolute"
-"1": ""
-"2": ""
-"3": ""
-"4": ""
-"5": ""
-"6": ""
-"7": ""
-"8": ""
-"9": ""
-"10": ""
-"11": ""
-"12": ""
+"hatu"   = ""
+"hatd"   = ""
+"hatl"   = ""
+"hatr"   = ""
 
-"hatu": ""
-"hatd": ""
-"hatl": ""
-"hatr": ""
+"hatul"  = ""
+"hatur"  = ""
+"hatdl"  = ""
+"hatdr"  = ""
 
-"hatul": ""
-"hatur": ""
-"hatdl": ""
-"hatdr": ""
+"xminus" = ""
+"xplus"  = ""
 
-"xminus": ""
-"xplus":  ""
+"yminus" = ""
+"yplus"  = ""
 
-"yminus": ""
-"yplus":  ""
-
-"zminus": ""
-"zplus":  ""
+"zminus" = ""
+"zplus"  = ""
+##################################################
