@@ -1,6 +1,24 @@
 # JPxG, 2022 January 3
+# Miscellaneous gibberish.
 cfg/*
 !cfg/template.toml
 notes*
 test*
 cfg/test*
+
+# Default soundpack.
+!snd/ding-220hz.wav
+!snd/ding-247hz.wav
+!snd/ding-262hz.wav
+!snd/ding-294hz.wav
+!snd/ding-349hz.wav
+!snd/ding-392hz.wav
+!snd/ding-440hz.wav
+!snd/ding-494hz.wav
+!snd/ding-523hz.wav
+!snd/ding-587hz.wav
+!snd/ding-659hz.wav
+!snd/ding-698hz.wav
+!snd/ding-783hz.wav
+!snd/ding-880hz.wav
+!snd/dingdong.wav

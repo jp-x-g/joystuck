@@ -332,10 +332,11 @@ while True:
 					if (type(sound) is list):
 						# If it's a list, select an element randomly.
 						sound = sound[randrange(len(sound))]
-						if (sounds['path'] == 'relative'):
-							sound = sndPath + "/" + sound
+					if (sounds['path'] == 'relative'):
+						sound = sndPath + "/" + sound
 					if __name__ == "__main__":
 						# Once we have a sound, start a thread to play it.
+						print("Sound ", sound)
 						threade = threading.Thread(target=playWav(sound), daemon=True)
 						threade.start()
 
